@@ -20,8 +20,17 @@ export type LoginInput = z.infer<typeof loginSchema>
 
 export const candidateRegisterSchema = loginSchema
   .extend({
+    // Etapa 1: Identificação & Contacto (+245)
     fullName: z.string().min(3, 'Indique o nome completo'),
     phone: z.string().regex(/^\+245\d{7,9}$/, 'Use o formato +245XXXXXXX'),
+    whatsapp: z.string().regex(/^(\+245\d{7,9})?$/, 'Use o formato +245XXXXXXX').optional(),
+    // Etapa 2: Localização & Perfil Profissional na Guiné-Bissau
+    region: z.enum(regions),
+    citySector: z.string().min(2, 'Indique o bairro ou setor administrativo'),
+    educationLevel: z.string().min(2, 'Selecione a escolaridade'),
+    primaryCategory: z.string().min(2, 'Selecione a sua área principal'),
+    experienceLevel: z.string().min(2, 'Selecione a experiência'),
+    // Etapa 3: Credenciais
     confirmPassword: z.string(),
     acceptTerms: z.literal(true, { message: 'É necessário aceitar os termos' }),
   })
@@ -55,6 +64,17 @@ export type CompanyRegisterInput = z.infer<typeof companyRegisterSchema>
 
 export const forgotPasswordSchema = z.object({ email: z.string().email('E-mail inválido') })
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
+
+export const advertisingRequestSchema = z.object({
+  organizationName: z.string().min(2, 'Indique o nome da escola ou empresa'),
+  contactName: z.string().min(2, 'Indique o seu nome'),
+  phone: z.string().regex(/^\+245\d{7,9}$/, 'Use o formato +245XXXXXXX'),
+  email: z.string().email('E-mail inválido'),
+  packageType: z.enum(['CURSO_VITRINE', 'BANNER_SPOTLIGHT', 'PLANO_EMPRESA_PRO', 'PARCERIA_INSTITUCIONAL']),
+  paymentMethod: z.enum(['ORANGE_MONEY', 'MTN_MOMO', 'TRANSFERENCIA_BANCARIA']),
+  notes: z.string().optional(),
+})
+export type AdvertisingRequestInput = z.infer<typeof advertisingRequestSchema>
 
 export const userSchema = z.object({
   id: z.string(),

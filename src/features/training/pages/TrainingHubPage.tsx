@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
-  ArrowRight, BookOpen, CheckCircle2, Clock, ExternalLink, GraduationCap, Megaphone, MapPin, MessageCircle, Sparkles,
+  ArrowRight, Award, BookOpen, CheckCircle2, Clock, ExternalLink, GraduationCap, Megaphone, MapPin, MessageCircle, Printer, Sparkles,
 } from 'lucide-react'
+import { useAuth } from '../../auth/AuthContext'
 import { useFreeCourses, useSponsoredAds } from '../hooks'
 import { trainingService } from '../../../services/training/trainingService'
 import { REGION_LABELS } from '../../../constants'
@@ -183,7 +184,7 @@ export function TrainingHubPage() {
                 Oportunidades de especialização promovidas por instituições de ensino na Guiné-Bissau e online.
               </p>
             </div>
-            <Link to="/contacto" className="btn-outline text-xs">
+            <Link to="/anunciar" className="btn-outline text-xs">
               <Megaphone className="h-4 w-4 text-accent" aria-hidden />
               Anunciar curso da minha instituição
             </Link>
@@ -204,7 +205,7 @@ export function TrainingHubPage() {
                   Divulgue os seus cursos pagos ou bolsas diretamente para milhares de candidatos que procuram qualificação profissional.
                 </p>
               </div>
-              <Link to="/contacto" className="btn-primary">Quero anunciar cursos</Link>
+              <Link to="/anunciar" className="btn-primary">Quero anunciar cursos</Link>
             </MotionCard>
           )}
 
@@ -271,12 +272,15 @@ export function TrainingHubPage() {
   )
 }
 
-/** Leitor de curso básico gratuito */
+/** Leitor de curso básico gratuito + Quiz e Emissão de Certificado A4 em PDF */
 export function CourseReaderPage() {
   const { slug = '' } = useParams()
+  const { user } = useAuth()
   const { data: course, isLoading, isError } = useFreeCourses()
   const found = course?.find((c) => c.slug === slug)
   const [lessonIdx, setLessonIdx] = useState(0)
+  const [selectedOption, setSelectedOption] = useState<number | null>(null)
+  const [certified, setCertified] = useState(false)
 
   if (isLoading) return <div className="mx-auto max-w-3xl p-8"><Skeleton className="h-64" /></div>
   if (isError || !found) {
@@ -289,14 +293,20 @@ export function CourseReaderPage() {
   }
 
   const lesson = found.lessons[lessonIdx] ?? found.lessons[0]
+  const isLastLesson = lessonIdx === found.lessons.length - 1
+
+  const completeCourse = () => {
+    if (found.quiz && selectedOption !== found.quiz.correctIndex) return
+    setCertified(true)
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <Seo title={found.title} description={found.summary} />
-      <Link to="/formacao" className="text-xs font-semibold text-ink-muted hover:text-ink">← Voltar para Cursos & Formação</Link>
+      <Link to="/formacao" className="text-xs font-semibold text-ink-muted hover:text-ink print:hidden">← Voltar para Cursos & Formação</Link>
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[260px_1fr]">
-        <aside className="card h-fit p-4">
+        <aside className="card h-fit p-4 print:hidden">
           <p className="text-xs font-bold uppercase text-accent-600">{found.category}</p>
           <h1 className="mt-1 font-extrabold">{found.title}</h1>
           <ol className="mt-4 space-y-1.5 text-xs">
@@ -304,9 +314,9 @@ export function CourseReaderPage() {
               <li key={l.id}>
                 <button
                   type="button"
-                  onClick={() => setLessonIdx(idx)}
+                  onClick={() => { setLessonIdx(idx); setCertified(false) }}
                   className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left font-medium ${
-                    idx === lessonIdx ? 'bg-brand text-white' : 'hover:bg-canvas'
+                    idx === lessonIdx && !certified ? 'bg-brand text-white' : 'hover:bg-canvas'
                   }`}
                 >
                   <span>{idx + 1}. {l.title}</span>
@@ -317,7 +327,7 @@ export function CourseReaderPage() {
           </ol>
         </aside>
 
-        {lesson && (
+        {!certified && lesson && (
           <article className="card p-6 sm:p-8">
             <BissauStripe className="mb-5 h-1 rounded-full" />
             <p className="text-xs text-ink-muted">Lição {lessonIdx + 1} de {found.lessons.length} · {lesson.durationMinutes} min de leitura</p>
@@ -325,6 +335,22 @@ export function CourseReaderPage() {
             <div className="mt-5 whitespace-pre-line text-sm leading-relaxed text-ink">
               {lesson.content}
             </div>
+
+            {isLastLesson && found.quiz && (
+              <div className="mt-8 rounded-xl border border-line bg-canvas p-4">
+                <p className="text-xs font-bold uppercase text-brand">Pergunta de revisão para emitir Certificado</p>
+                <p className="mt-1 text-sm font-semibold">{found.quiz.question}</p>
+                <div className="mt-3 space-y-2 text-xs">
+                  {found.quiz.options.map((opt, idx) => (
+                    <label key={opt} className="flex cursor-pointer items-center gap-2 rounded-lg border border-line bg-white p-2.5">
+                      <input type="radio" name="quiz" checked={selectedOption === idx} onChange={() => setSelectedOption(idx)} />
+                      <span>{opt}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="mt-8 flex justify-between border-t border-line pt-4">
               <button
                 type="button"
@@ -334,15 +360,42 @@ export function CourseReaderPage() {
               >
                 Lição anterior
               </button>
-              {lessonIdx < found.lessons.length - 1 ? (
+              {!isLastLesson ? (
                 <button type="button" className="btn-primary" onClick={() => setLessonIdx((i) => i + 1)}>
                   Próxima lição
                 </button>
               ) : (
-                <Link to="/vagas" className="btn-accent">Concluir e ver vagas</Link>
+                <button type="button" className="btn-accent" onClick={completeCourse}>
+                  <Award className="h-4 w-4" aria-hidden />
+                  Emitir Certificado KANDIDATU
+                </button>
               )}
             </div>
           </article>
+        )}
+
+        {certified && (
+          <section aria-label="Certificado de conclusão" className="card overflow-hidden border-2 border-gold p-8 text-center shadow-lift">
+            <BissauStripe className="mb-6 h-1.5 rounded-full" />
+            <Award className="mx-auto h-12 w-12 text-gold" aria-hidden />
+            <p className="mt-2 text-xs font-bold uppercase tracking-widest text-brand">Academia KANDIDATU · Guiné-Bissau</p>
+            <h2 className="mt-2 text-2xl font-extrabold">Certificado de Valorização Profissional</h2>
+            <p className="mt-4 text-sm text-ink-muted">Certificamos que</p>
+            <p className="mt-1 text-xl font-extrabold text-brand">{user?.name ?? 'Profissional KANDIDATU'}</p>
+            <p className="mt-3 text-sm text-ink-muted">
+              concluiu com aproveitamento o curso de leitura <strong>{found.title}</strong> ({found.readingMinutes} min) na área de {found.category}.
+            </p>
+            <p className="mt-6 text-xs text-ink-muted">
+              Código de validação: <code>KND-{found.id.slice(0, 6).toUpperCase()}</code> · Emitido em {new Date().toLocaleDateString('pt-PT')}
+            </p>
+            <div className="mt-6 flex justify-center gap-3 print:hidden">
+              <button type="button" onClick={() => window.print()} className="btn-primary">
+                <Printer className="h-4 w-4" aria-hidden />
+                Imprimir / Guardar PDF
+              </button>
+              <Link to="/vagas" className="btn-accent">Explorar vagas na área</Link>
+            </div>
+          </section>
         )}
       </div>
     </div>

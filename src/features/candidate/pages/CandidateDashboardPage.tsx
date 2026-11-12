@@ -4,6 +4,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { useDashboard, useProfile } from '../hooks'
 import { JobCard } from '../../../components/jobs/JobCard'
 import { PageHeader, QueryState, StatCard, StatusBadge } from '../../../components/shared/Dashboard'
+import { SponsoredBannerSlot } from '../../../components/shared/SponsoredBannerSlot'
 import { Seo } from '../../../components/shared/Seo'
 import { formatDate } from '../../../utils/format'
 
@@ -98,6 +99,11 @@ export default function CandidateDashboardPage() {
                   ))}
                 </ol>
               )}
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Cursos & qualificações recomendadas</h2>
+              <SponsoredBannerSlot placement="SIDEBAR_BANNER" limit={2} />
             </section>
           </>
         )}

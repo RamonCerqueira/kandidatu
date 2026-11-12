@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { BookOpen, Megaphone, Plus, Power, Trash2 } from 'lucide-react'
 import {
@@ -13,19 +13,23 @@ import { PageHeader, QueryState, StatCard } from '../../../components/shared/Das
 import { Seo } from '../../../components/shared/Seo'
 import { formatDate, formatXOF } from '../../../utils/format'
 
-/** Gestão SuperAdmin de Cursos Básicos Gratuitos de Leitura */
+/** Gestão SuperAdmin de Cursos Básicos Gratuitos de Leitura (Múltiplas Lições + Quiz de Certificação) */
 export function AdminFreeCoursesPage() {
   const { data, isLoading, isError } = useFreeCourses()
   const { createCourse, deleteCourse } = useTrainingAdminActions()
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<CreateFreeCourseInput>({
+  const { register, control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<CreateFreeCourseInput>({
     resolver: zodResolver(createFreeCourseSchema) as never,
     defaultValues: {
       category: 'Empregabilidade',
       level: 'INICIANTE',
-      readingMinutes: 10,
+      readingMinutes: 15,
+      lessons: [{ title: 'Introdução e conceitos práticos', durationMinutes: 5, content: '' }],
+      quizCorrectIndex: 0,
     },
   })
+
+  const { fields, append, remove } = useFieldArray({ control, name: 'lessons' })
 
   const onSubmit = async (v: CreateFreeCourseInput) => {
     await createCourse.mutateAsync(v)
@@ -36,22 +40,22 @@ export function AdminFreeCoursesPage() {
     <div className="space-y-8">
       <Seo title="SuperAdmin — Cursos Gratuitos de Leitura" />
       <PageHeader
-        title="Cursos básicos gratuitos (Leitura)"
-        subtitle="Publique guias e minicursos gratuitos de leitura para valorização profissional dos candidatos."
+        title="Cursos básicos gratuitos (Leitura & Certificado)"
+        subtitle="Publique cursos com múltiplas lições e pergunta final para emissão de certificado KANDIDATU."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="card h-fit space-y-3.5 p-5">
+      <div className="grid gap-6 xl:grid-cols-[480px_1fr]">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="card h-fit space-y-4 p-5">
           <h2 className="flex items-center gap-2 font-bold">
             <BookOpen className="h-4 w-4 text-accent" aria-hidden />
-            Novo curso gratuito
+            Criar curso gratuito com lições
           </h2>
 
           <FormField label="Título do curso" error={errors.title?.message}>
-            {(id, d) => <input id={id} aria-describedby={d} placeholder="Ex: Como brilhar em entrevistas" className="input" {...register('title')} />}
+            {(id, d) => <input id={id} aria-describedby={d} placeholder="Ex: Preparação para Entrevistas na Guiné-Bissau" className="input" {...register('title')} />}
           </FormField>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             <FormField label="Categoria" error={errors.category?.message}>
               {(id, d) => (
                 <select id={id} aria-describedby={d} className="input" {...register('category')}>
@@ -72,23 +76,64 @@ export function AdminFreeCoursesPage() {
                 </select>
               )}
             </FormField>
+
+            <FormField label="Minutos totais" error={errors.readingMinutes?.message}>
+              {(id, d) => <input id={id} aria-describedby={d} type="number" min={1} className="input" {...register('readingMinutes')} />}
+            </FormField>
           </div>
 
-          <FormField label="Tempo estimado de leitura (minutos)" error={errors.readingMinutes?.message}>
-            {(id, d) => <input id={id} aria-describedby={d} type="number" min={1} className="input" {...register('readingMinutes')} />}
-          </FormField>
-
-          <FormField label="Resumo curto" error={errors.summary?.message}>
+          <FormField label="Resumo do curso" error={errors.summary?.message}>
             {(id, d) => <textarea id={id} aria-describedby={d} rows={2} className="input" {...register('summary')} />}
           </FormField>
 
-          <FormField label="Título da 1ª lição" error={errors.lessonTitle?.message}>
-            {(id, d) => <input id={id} aria-describedby={d} className="input" {...register('lessonTitle')} />}
-          </FormField>
+          {/* Lista dinâmica de lições */}
+          <div className="space-y-3 rounded-lg border border-line bg-canvas p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase text-brand">Lições do curso ({fields.length})</span>
+              <button
+                type="button"
+                onClick={() => append({ title: '', durationMinutes: 5, content: '' })}
+                className="btn-outline py-1 text-xs"
+              >
+                <Plus className="h-3.5 w-3.5" />Adicionar lição
+              </button>
+            </div>
 
-          <FormField label="Texto completo de leitura" error={errors.lessonContent?.message}>
-            {(id, d) => <textarea id={id} aria-describedby={d} rows={6} className="input" {...register('lessonContent')} />}
-          </FormField>
+            {fields.map((field, index) => (
+              <div key={field.id} className="space-y-2 rounded-lg border border-line bg-white p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-ink-muted">Lição {index + 1}</span>
+                  {fields.length > 1 && (
+                    <button type="button" onClick={() => remove(index)} className="text-xs text-red-600 hover:underline">
+                      Remover
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-[1fr_90px] gap-2">
+                  <input placeholder="Título da lição" className="input" {...register(`lessons.${index}.title`)} />
+                  <input type="number" min={1} placeholder="Min" className="input" {...register(`lessons.${index}.durationMinutes`)} />
+                </div>
+                <textarea rows={4} placeholder="Texto completo da lição para leitura…" className="input" {...register(`lessons.${index}.content`)} />
+              </div>
+            ))}
+          </div>
+
+          {/* Pergunta de revisão para desbloquear certificado */}
+          <div className="space-y-2 rounded-lg border border-line bg-canvas p-3">
+            <p className="text-xs font-bold uppercase text-brand">Pergunta final para Certificado (Opcional)</p>
+            <input placeholder="Pergunta de verificação da leitura" className="input" {...register('quizQuestion')} />
+            <input placeholder="Opção A" className="input" {...register('quizOptionA')} />
+            <input placeholder="Opção B" className="input" {...register('quizOptionB')} />
+            <input placeholder="Opção C" className="input" {...register('quizOptionC')} />
+            <label className="block text-xs font-medium">
+              Resposta correta:
+              <select className="input mt-1" {...register('quizCorrectIndex')}>
+                <option value={0}>Opção A</option>
+                <option value={1}>Opção B</option>
+                <option value={2}>Opção C</option>
+              </select>
+            </label>
+          </div>
 
           <button className="btn-primary w-full" disabled={isSubmitting || createCourse.isPending}>
             <Plus className="h-4 w-4" aria-hidden />
@@ -184,7 +229,7 @@ export function AdminSponsoredAdsPage() {
                 <select id={id} aria-describedby={d} className="input" {...register('placement')}>
                   {adPlacements.map((p) => (
                     <option key={p} value={p}>
-                      {p === 'SPOTLIGHT_TOP' ? 'Banner Topo (Spotlight)' : p === 'CATALOG_CARD' ? 'Card na Vitrine' : 'Banner Lateral'}
+                      {p === 'SPOTLIGHT_TOP' ? 'Banner Topo (Spotlight)' : p === 'CATALOG_CARD' ? 'Card na Vitrine' : 'Banner Lateral (Vagas & Painel)'}
                     </option>
                   ))}
                 </select>
@@ -306,4 +351,3 @@ export function AdminSponsoredAdsPage() {
     </div>
   )
 }
-

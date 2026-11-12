@@ -1,11 +1,14 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useFieldArray, useForm, type Control } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowDown, ArrowUp, Plus, Printer, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, HardDriveDownload, Plus, Printer, Trash2 } from 'lucide-react'
 import { curriculumSchema, type Curriculum } from '../../../schemas/candidate'
 import { useCurriculum, useSaveCurriculum } from '../hooks'
+import { useToast } from '../../../components/ui/ToastContext'
 import { PageHeader } from '../../../components/shared/Dashboard'
 import { Seo } from '../../../components/shared/Seo'
+
+const DRAFT_STORAGE_KEY = 'kandidatu.curriculum.draft'
 
 const emptyCurriculum: Curriculum = {
   template: 'moderno',
@@ -57,13 +60,40 @@ function ArraySection({
 export default function CurriculumPage() {
   const { data } = useCurriculum()
   const save = useSaveCurriculum()
+  const { notify } = useToast()
+  const [offlineSavedAt, setOfflineSavedAt] = useState<string | null>(null)
+
   const { register, control, handleSubmit, reset, watch } = useForm<Curriculum>({
     resolver: zodResolver(curriculumSchema),
-    defaultValues: emptyCurriculum,
+    defaultValues: () => {
+      try {
+        const raw = localStorage.getItem(DRAFT_STORAGE_KEY)
+        if (raw) return JSON.parse(raw) as Curriculum
+      } catch {
+        // ignora erro de leitura local
+      }
+      return emptyCurriculum
+    },
   })
 
   useEffect(() => { if (data) reset(data) }, [data, reset])
   const v = watch()
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(v))
+      setOfflineSavedAt(new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }))
+    } catch {
+      // ignora quota excedida
+    }
+  }, [v])
+
+  const onSaveServer = (c: Curriculum) => {
+    save.mutate(c, {
+      onSuccess: () => notify('Currículo sincronizado com o servidor!', 'success'),
+      onError: () => notify('Rascunho mantido offline no seu dispositivo.', 'info'),
+    })
+  }
 
   return (
     <div>
@@ -72,7 +102,13 @@ export default function CurriculumPage() {
         title="Construtor de currículo"
         subtitle="Adicione, reordene secções e gere o PDF em formato A4."
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {offlineSavedAt && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-accent-50 px-2.5 py-1 text-xs font-medium text-accent-600">
+                <HardDriveDownload className="h-3.5 w-3.5" aria-hidden />
+                Guardado offline às {offlineSavedAt}
+              </span>
+            )}
             <select aria-label="Modelo do currículo" className="input w-auto" {...register('template')}>
               <option value="moderno">Modelo Moderno</option>
               <option value="classico">Modelo Clássico</option>
@@ -85,7 +121,7 @@ export default function CurriculumPage() {
       />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
-        <form onSubmit={handleSubmit((c) => save.mutate(c))} noValidate className="space-y-4 print:hidden">
+        <form onSubmit={handleSubmit(onSaveServer)} noValidate className="space-y-4 print:hidden">
           <section className="card grid gap-3 p-4 sm:grid-cols-2">
             <h2 className=" font-semibold sm:col-span-2">Dados pessoais</h2>
             <input placeholder="Nome completo" className="input" {...register('personal.fullName')} />

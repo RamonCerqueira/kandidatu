@@ -8,6 +8,7 @@ import { contractTypes, regions, workModes, type Job, type JobSearch } from '../
 import { CATEGORIES, CONTRACT_LABELS, EDUCATION_LEVELS, EXPERIENCE_LEVELS, MODE_LABELS, REGION_LABELS } from '../../constants'
 import { useDebounced } from '../../hooks/useDebounced'
 import { Seo } from '../../components/shared/Seo'
+import { SponsoredBannerSlot } from '../../components/shared/SponsoredBannerSlot'
 import { formatDate, formatSalary } from '../../utils/format'
 
 type Opt = [string, string]
@@ -199,6 +200,9 @@ export default function JobsPage() {
                 </p>
               </div>
             )}
+          </div>
+          <div className="mt-4">
+            <SponsoredBannerSlot placement="SIDEBAR_BANNER" limit={2} />
           </div>
         </aside>
       </div>

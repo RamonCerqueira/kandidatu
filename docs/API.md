@@ -5,7 +5,8 @@
 | Método | Rota | Descrição |
 |---|---|---|
 | POST | /auth/login | `{email,password}` → `{token,user}` (JWT) |
-| POST | /auth/register/candidate | `{email,password,fullName,phone}` |
+| POST | /auth/register/candidate | `{fullName,phone,whatsapp?,region,citySector,educationLevel,primaryCategory,experienceLevel,email,password}` |
+| POST | /advertising-requests | `{organizationName,contactName,phone,email,packageType,paymentMethod,notes?}` (Orange Money / MTN MoMo / Transferência) |
 | POST | /auth/register/company | `{organizationType,legalName,tradeName?,taxId,sector,sizeRange,region,citySector,addressReference,website?,contactName,contactRole,phone,whatsapp?,email,password}`; empresa fica pendente de verificação |
 | POST | /auth/forgot-password | `{email}`; resposta neutra (não revelar se o e-mail existe) |
 | GET | /auth/me | utilizador atual |

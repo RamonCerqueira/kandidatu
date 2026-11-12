@@ -8,6 +8,8 @@ import { AdminLayout } from './app/layouts/AdminLayout'
 import { AuthProvider } from './features/auth/AuthContext'
 import { RequireRole } from './features/auth/RequireRole'
 import { ErrorBoundary } from './components/shared/ErrorBoundary'
+import { ToastProvider } from './components/ui/ToastContext'
+import { LocaleProvider } from './app/providers/LocaleContext'
 
 const HomePage = lazy(() => import('./features/public/HomePage'))
 const JobsPage = lazy(() => import('./features/jobs/JobsPage'))
@@ -15,6 +17,7 @@ const JobDetailPage = lazy(() => import('./features/jobs/JobDetailPage'))
 const CompaniesPage = lazy(() => import('./features/companies/pages/CompaniesPage'))
 const CompanyPage = lazy(() => import('./features/companies/pages/CompanyPage'))
 const InstitutionalPage = lazy(() => import('./features/public/InstitutionalPage'))
+const AdvertisePage = lazy(() => import('./features/public/AdvertisePage'))
 const TrainingHubPage = lazy(() => import('./features/training/pages/TrainingHubPage'))
 const CourseReaderPage = lazy(() => import('./features/training/pages/CourseReaderPage'))
 const SignupChoicePage = lazy(() => import('./features/auth/pages/SignupChoicePage'))
@@ -56,6 +59,7 @@ const router = createBrowserRouter([
       { path: '/empresas/:id', element: <CompanyPage /> },
       { path: '/formacao', element: <TrainingHubPage /> },
       { path: '/formacao/:slug', element: <CourseReaderPage /> },
+      { path: '/anunciar', element: <AdvertisePage /> },
       { path: '/entrar', element: <LoginPage /> },
       { path: '/cadastro', element: <SignupChoicePage /> },
       { path: '/cadastro/candidato', element: <RegisterCandidatePage /> },
@@ -134,11 +138,15 @@ export default function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <Suspense fallback={<p className="p-8 text-center text-sm text-ink-muted">A carregar…</p>}>
-            <RouterProvider router={router} />
-          </Suspense>
-        </AuthProvider>
+        <LocaleProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <Suspense fallback={<p className="p-8 text-center text-sm text-ink-muted">A carregar…</p>}>
+                <RouterProvider router={router} />
+              </Suspense>
+            </AuthProvider>
+          </ToastProvider>
+        </LocaleProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   )

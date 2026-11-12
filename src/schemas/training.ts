@@ -2,12 +2,19 @@ import { z } from 'zod'
 import { regions } from './job'
 
 export const lessonSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   title: z.string().min(2, 'Indique o título da lição'),
-  durationMinutes: z.number().int().min(1),
+  durationMinutes: z.coerce.number().int().min(1),
   content: z.string().min(10, 'Indique o conteúdo de leitura'),
 })
 export type CourseLesson = z.infer<typeof lessonSchema>
+
+export const quizQuestionSchema = z.object({
+  question: z.string().min(5, 'Indique a pergunta de revisão'),
+  options: z.array(z.string().min(1)).min(2),
+  correctIndex: z.coerce.number().int().min(0),
+})
+export type QuizQuestion = z.infer<typeof quizQuestionSchema>
 
 export const freeCourseSchema = z.object({
   id: z.string(),
@@ -17,7 +24,8 @@ export const freeCourseSchema = z.object({
   level: z.enum(['INICIANTE', 'INTERMEDIO', 'AVANCADO']),
   readingMinutes: z.number().int().min(1),
   summary: z.string().min(10, 'Indique o resumo'),
-  lessons: z.array(lessonSchema),
+  lessons: z.array(lessonSchema.extend({ id: z.string() })),
+  quiz: quizQuestionSchema.nullable().optional(),
   published: z.boolean().default(true),
 })
 export type FreeCourse = z.infer<typeof freeCourseSchema>
@@ -28,8 +36,12 @@ export const createFreeCourseSchema = z.object({
   level: z.enum(['INICIANTE', 'INTERMEDIO', 'AVANCADO']),
   readingMinutes: z.coerce.number().int().min(1),
   summary: z.string().min(10, 'Indique o resumo'),
-  lessonTitle: z.string().min(3, 'Indique o título da 1ª lição'),
-  lessonContent: z.string().min(20, 'Escreva o conteúdo de leitura'),
+  lessons: z.array(lessonSchema).min(1, 'Adicione pelo menos 1 lição'),
+  quizQuestion: z.string().optional(),
+  quizOptionA: z.string().optional(),
+  quizOptionB: z.string().optional(),
+  quizOptionC: z.string().optional(),
+  quizCorrectIndex: z.coerce.number().int().min(0).max(2).default(0),
 })
 export type CreateFreeCourseInput = z.infer<typeof createFreeCourseSchema>
 
@@ -75,4 +87,3 @@ export const createSponsoredAdSchema = z.object({
   endsAt: z.string().min(1, 'Data de término'),
 })
 export type CreateSponsoredAdInput = z.infer<typeof createSponsoredAdSchema>
-

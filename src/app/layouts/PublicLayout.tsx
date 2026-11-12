@@ -1,7 +1,8 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, Briefcase, Building2, Compass, Home, LogIn, Search } from 'lucide-react'
+import { ArrowUpRight, Briefcase, Building2, Compass, Globe, Home, LogIn, Search } from 'lucide-react'
 import { useAuth, homeFor } from '../../features/auth/AuthContext'
+import { useLocale, type LocaleCode } from '../providers/LocaleContext'
 import { BissauStripe, GuineaBissauBadge, PulseDot } from '../../components/ui/MotionPrimitives'
 
 const links = [
@@ -26,6 +27,7 @@ const footer: { title: string; items: [string, string][] }[] = [
     title: 'Empresas & ONGs',
     items: [
       ['/para-empresas', 'Soluções de recrutamento'],
+      ['/anunciar', 'Anunciar cursos & Planos (XOF)'],
       ['/empresas', 'Diretório de organizações'],
       ['/cadastro/empresa', 'Publicar uma oportunidade'],
     ],
@@ -43,19 +45,42 @@ const footer: { title: string; items: [string, string][] }[] = [
 
 export function PublicLayout() {
   const { user, logout } = useAuth()
+  const { locale, setLocale, t } = useLocale()
+  const navLinks = [
+    { to: '/', label: t.navHome, end: true },
+    { to: '/vagas', label: t.navJobs, end: false },
+    { to: '/empresas', label: t.navCompanies, end: false },
+    { to: '/formacao', label: t.navTraining, end: false },
+    { to: '/sobre', label: t.navAbout, end: false },
+  ]
   return (
     <div className="flex min-h-screen flex-col">
       {/* Filete tricolor oficial da Guiné-Bissau no topo */}
       <BissauStripe className="h-1" />
 
-      {/* Topbar institucional com identidade nacional */}
+      {/* Topbar institucional com identidade nacional e seletor de idioma */}
       <div className="hidden border-b border-white/10 bg-brand-900 px-4 py-1.5 text-xs text-white/80 md:block">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <span className="inline-flex items-center gap-2">
             <PulseDot color="bg-bissau-yellow" />
-            <span>Plataforma digital de talentos e oportunidades profissionais da Guiné-Bissau</span>
+            <span>{t.slogan}</span>
           </span>
-          <span className="text-white/65">Bissau · Bafatá · Gabú · Cacheu · Oio · Biombo · Quinara · Tombali · Bijagós</span>
+          <div className="flex items-center gap-4">
+            <span className="text-white/65">Bissau · Bafatá · Gabú · Cacheu · Oio · Biombo · Quinara · Tombali · Bijagós</span>
+            <label className="inline-flex items-center gap-1 rounded bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-gold">
+              <Globe className="h-3 w-3" aria-hidden />
+              <select
+                aria-label="Selecionar idioma"
+                value={locale}
+                onChange={(e) => setLocale(e.target.value as LocaleCode)}
+                className="bg-transparent text-white outline-none"
+              >
+                <option value="pt-GW" className="text-ink">PT-GW</option>
+                <option value="gwc" className="text-ink">Kriol</option>
+                <option value="fr" className="text-ink">FR</option>
+              </select>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -89,7 +114,7 @@ export function PublicLayout() {
           </Link>
 
           <nav aria-label="Principal" className="hidden items-center gap-1 md:flex">
-            {links.map((l) => (
+            {navLinks.map((l) => (
               <NavLink
                 key={l.to}
                 to={l.to}
@@ -108,17 +133,17 @@ export function PublicLayout() {
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                <Link to={homeFor(user.role)} className="btn-outline">A minha área</Link>
+                <Link to={homeFor(user.role)} className="btn-outline">{t.myArea}</Link>
                 <button className="btn-outline" onClick={logout}>Sair</button>
               </>
             ) : (
               <Link to="/entrar" className="btn-outline">
                 <LogIn className="h-4 w-4" aria-hidden />
-                Entrar
+                {t.login}
               </Link>
             )}
             <Link to={user?.role === 'COMPANY' ? '/empresa/vagas/nova' : '/cadastro/empresa'} className="btn-accent hidden sm:inline-flex">
-              Publicar vaga
+              {t.postJob}
               <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
             </Link>
           </div>
