@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-canvas text-ink font-sans antialiased selection:bg-accent/20 selection:text-brand;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-[.98] disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand text-white shadow-sm hover:bg-brand-600 hover:shadow;
+  }
+  .btn-accent {
+    @apply btn bg-accent text-white shadow-sm hover:bg-accent-600 hover:shadow;
+  }
+  .btn-gold {
+    @apply btn bg-gold text-brand-900 shadow-sm hover:brightness-95;
+  }
+  .btn-outline {
+    @apply btn border border-line bg-white text-ink hover:border-brand/30 hover:bg-canvas;
+  }
+  .card {
+    @apply rounded-card border border-line bg-white shadow-soft transition-all duration-200;
+  }
+  .card-interactive {
+    @apply card hover:-translate-y-0.5 hover:border-brand/25 hover:shadow-lift;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink transition placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-md border border-line bg-canvas px-2.5 py-1 text-xs font-medium text-ink;
+  }
+  /* Padrão geométrico subtil inspirado na tecelagem Pano di Pinti da Guiné-Bissau */
+  .bg-pinti-grid {
+    background-image:
+      radial-gradient(rgba(233, 185, 91, 0.14) 1px, transparent 1px),
+      linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 24px 24px, 48px 48px, 48px 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
