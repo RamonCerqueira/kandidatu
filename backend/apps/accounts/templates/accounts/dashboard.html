@@ -1,0 +1,109 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Painel do Utilizador — KANDIDATU{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-4xl mx-auto space-y-6">
+    <!-- Messages / Alerts -->
+    {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+                <div class="p-4 rounded-xl text-sm font-medium {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- User Header Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm">
+        <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white font-black text-2xl shadow-sm">
+                {{ user.name|first|upper }}
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h1 class="text-2xl font-black text-slate-900">{{ user.name }}</h1>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider {% if user.role == 'ADMIN' %}bg-purple-100 text-purple-700{% elif user.role == 'COMPANY' %}bg-amber-100 text-amber-800{% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                        {{ role_label }}
+                    </span>
+                </div>
+                <p class="text-sm text-slate-500 mt-0.5">{{ user.email }} • ID: <span class="font-mono text-xs">{{ user.id }}</span></p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            {% if user.is_staff or user.is_admin %}
+                <a href="/admin/" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold shadow-sm transition">
+                    Django Admin
+                </a>
+            {% endif %}
+            <a href="{% url 'accounts:logout' %}" class="px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium transition">
+                Terminar Sessão
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick stats / Info grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Banco de Dados Ativo</p>
+            <p class="text-xl font-black text-slate-900 mt-1">kandidatu</p>
+            <p class="text-xs text-emerald-600 font-semibold mt-1">● Conectado (PostgreSQL 18)</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Arquitetura</p>
+            <p class="text-xl font-black text-slate-900 mt-1">Django MVC</p>
+            <p class="text-xs text-slate-500 mt-1">Model-View-Template + REST API</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Frontend Integrado</p>
+            <p class="text-xl font-black text-slate-900 mt-1">React + Vite</p>
+            <a href="http://localhost:5173" target="_blank" class="text-xs text-brand-600 font-semibold hover:underline mt-1 block">Abrir Frontend (localhost:5173) →</a>
+        </div>
+    </div>
+
+    <!-- Technical Overview -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+        <h2 class="text-lg font-bold text-slate-900">Estado dos Endpoints da Aplicação</h2>
+        <div class="divide-y divide-slate-100 text-sm">
+            <div class="py-3 flex items-center justify-between">
+                <div>
+                    <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 mr-2">POST</span>
+                    <span class="font-mono text-slate-800">/api/auth/login</span>
+                </div>
+                <span class="text-xs text-slate-500">Autenticação JWT (Zod / React)</span>
+            </div>
+            <div class="py-3 flex items-center justify-between">
+                <div>
+                    <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800 mr-2">GET</span>
+                    <span class="font-mono text-slate-800">/api/auth/me</span>
+                </div>
+                <span class="text-xs text-slate-500">Dados do utilizador logado via Bearer Token</span>
+            </div>
+            <div class="py-3 flex items-center justify-between">
+                <div>
+                    <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 mr-2">POST</span>
+                    <span class="font-mono text-slate-800">/api/auth/register/candidate</span>
+                </div>
+                <span class="text-xs text-slate-500">Cadastro de candidatos da Guiné-Bissau</span>
+            </div>
+            <div class="py-3 flex items-center justify-between">
+                <div>
+                    <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 mr-2">POST</span>
+                    <span class="font-mono text-slate-800">/api/auth/register/company</span>
+                </div>
+                <span class="text-xs text-slate-500">Cadastro de empresas e ONGs</span>
+            </div>
+            <div class="py-3 flex items-center justify-between">
+                <div>
+                    <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800 mr-2">GET/POST</span>
+                    <span class="font-mono text-slate-800">/admin/</span>
+                </div>
+                <span class="text-xs text-slate-500">Painel administrativo oficial do Django</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

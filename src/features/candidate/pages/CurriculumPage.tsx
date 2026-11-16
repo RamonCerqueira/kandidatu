@@ -57,6 +57,21 @@ function ArraySection({
   )
 }
 
+const getInitialCurriculum = (): Curriculum => {
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed && typeof parsed === 'object' && parsed.personal) {
+        return parsed as Curriculum
+      }
+    }
+  } catch {
+    // ignora erro de leitura local
+  }
+  return emptyCurriculum
+}
+
 export default function CurriculumPage() {
   const { data } = useCurriculum()
   const save = useSaveCurriculum()
@@ -65,15 +80,7 @@ export default function CurriculumPage() {
 
   const { register, control, handleSubmit, reset, watch } = useForm<Curriculum>({
     resolver: zodResolver(curriculumSchema),
-    defaultValues: () => {
-      try {
-        const raw = localStorage.getItem(DRAFT_STORAGE_KEY)
-        if (raw) return JSON.parse(raw) as Curriculum
-      } catch {
-        // ignora erro de leitura local
-      }
-      return emptyCurriculum
-    },
+    defaultValues: getInitialCurriculum(),
   })
 
   useEffect(() => { if (data) reset(data) }, [data, reset])
@@ -202,15 +209,15 @@ export default function CurriculumPage() {
 
         {/* Pré-visualização A4 */}
         <aside aria-label="Pré-visualização A4 do currículo" className="card mx-auto aspect-[1/1.414] w-full max-w-[420px] overflow-y-auto p-6 text-xs shadow-lift print:max-w-none print:border-0 print:shadow-none">
-          <header className={v.template === 'moderno' ? 'border-b-2 border-brand pb-3' : 'border-b border-ink pb-3 text-center'}>
-            <h2 className="text-lg font-extrabold text-brand">{v.personal.fullName || 'O seu nome'}</h2>
-            <p className="text-ink-muted">{[v.personal.city, v.personal.phone, v.personal.email].filter(Boolean).join(' · ')}</p>
+          <header className={v?.template === 'moderno' ? 'border-b-2 border-brand pb-3' : 'border-b border-ink pb-3 text-center'}>
+            <h2 className="text-lg font-extrabold text-brand">{v?.personal?.fullName || 'O seu nome'}</h2>
+            <p className="text-ink-muted">{[v?.personal?.city, v?.personal?.phone, v?.personal?.email].filter(Boolean).join(' · ')}</p>
           </header>
-          {v.summary && <section className="mt-3"><h3 className="font-bold uppercase tracking-wider text-brand">Resumo</h3><p className="mt-1 whitespace-pre-line">{v.summary}</p></section>}
-          {v.experiences.length > 0 && (
+          {v?.summary && <section className="mt-3"><h3 className="font-bold uppercase tracking-wider text-brand">Resumo</h3><p className="mt-1 whitespace-pre-line">{v.summary}</p></section>}
+          {(v?.experiences ?? []).length > 0 && (
             <section className="mt-3">
               <h3 className="font-bold uppercase tracking-wider text-brand">Experiência</h3>
-              {v.experiences.map((e, i) => (
+              {v?.experiences?.map((e, i) => (
                 <div key={i} className="mt-1.5">
                   <p className="font-semibold">{e.role} — {e.company} <span className="font-normal text-ink-muted">({e.period})</span></p>
                   <p className="text-ink-muted">{e.description}</p>
@@ -218,28 +225,28 @@ export default function CurriculumPage() {
               ))}
             </section>
           )}
-          {v.education.length > 0 && (
+          {(v?.education ?? []).length > 0 && (
             <section className="mt-3">
               <h3 className="font-bold uppercase tracking-wider text-brand">Formação</h3>
-              {v.education.map((e, i) => <p key={i} className="mt-1"><span className="font-semibold">{e.course}</span> · {e.institution} ({e.period})</p>)}
+              {v?.education?.map((e, i) => <p key={i} className="mt-1"><span className="font-semibold">{e.course}</span> · {e.institution} ({e.period})</p>)}
             </section>
           )}
-          {v.skills.length > 0 && (
+          {(v?.skills ?? []).length > 0 && (
             <section className="mt-3">
               <h3 className="font-bold uppercase tracking-wider text-brand">Competências</h3>
-              <p className="mt-1">{v.skills.map((s) => s.name).filter(Boolean).join(' · ')}</p>
+              <p className="mt-1">{v?.skills?.map((s) => s.name).filter(Boolean).join(' · ')}</p>
             </section>
           )}
-          {v.languages.length > 0 && (
+          {(v?.languages ?? []).length > 0 && (
             <section className="mt-3">
               <h3 className="font-bold uppercase tracking-wider text-brand">Idiomas</h3>
-              <p className="mt-1">{v.languages.map((l) => `${l.name} (${l.level})`).join(' · ')}</p>
+              <p className="mt-1">{v?.languages?.map((l) => `${l.name} (${l.level})`).join(' · ')}</p>
             </section>
           )}
-          {v.references.length > 0 && (
+          {(v?.references ?? []).length > 0 && (
             <section className="mt-3">
               <h3 className="font-bold uppercase tracking-wider text-brand">Referências</h3>
-              {v.references.map((r, i) => <p key={i} className="mt-1">{r.name} — {r.role} ({r.contact})</p>)}
+              {v?.references?.map((r, i) => <p key={i} className="mt-1">{r.name} — {r.role} ({r.contact})</p>)}
             </section>
           )}
         </aside>
