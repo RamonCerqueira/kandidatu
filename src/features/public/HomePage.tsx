@@ -248,8 +248,8 @@ export default function HomePage() {
               >
                 <BissauStripe className="h-1" />
                 <img
-                  src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=800&q=80"
-                  alt="Profissional africana sorridente no escritório"
+                  src="/images/talento-lideranca-gb.jpg"
+                  alt="Líder e profissional guineense no escritório"
                   className="h-64 w-full object-cover object-top sm:h-72"
                   loading="eager"
                 />
