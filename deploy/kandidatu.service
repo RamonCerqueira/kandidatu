@@ -1,0 +1,19 @@
+[Unit]
+Description=Kandidatu Django API
+After=network.target postgresql.service
+
+[Service]
+User=kandidatu
+Group=kandidatu
+WorkingDirectory=/opt/kandidatu/current/backend
+ExecStart=/opt/kandidatu/current/.venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:3220 --workers 2 --timeout 60 --access-logfile - --error-logfile -
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

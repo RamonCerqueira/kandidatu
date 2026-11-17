@@ -1,0 +1,10 @@
+[Unit]
+Description=Check Kandidatu main every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=60s
+Unit=kandidatu-update.service
+
+[Install]
+WantedBy=timers.target

@@ -5,14 +5,6 @@ import { useAuth, homeFor } from '../../features/auth/AuthContext'
 import { useLocale, type LocaleCode } from '../providers/LocaleContext'
 import { BissauStripe, GuineaBissauBadge, PulseDot } from '../../components/ui/MotionPrimitives'
 
-const links = [
-  { to: '/', label: 'Início', end: true },
-  { to: '/vagas', label: 'Encontrar emprego', end: false },
-  { to: '/empresas', label: 'Empresas', end: false },
-  { to: '/formacao', label: 'Cursos & Formação', end: false },
-  { to: '/sobre', label: 'Sobre nós', end: false },
-]
-
 const footer: { title: string; items: [string, string][] }[] = [
   {
     title: 'Profissionais',

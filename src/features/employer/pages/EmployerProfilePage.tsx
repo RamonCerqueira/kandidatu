@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import type { z } from 'zod'
 import { BadgeCheck, Clock } from 'lucide-react'
 import { employerProfileSchema, type EmployerProfile } from '../../../schemas/employer'
 import { useEmployerProfile, useSaveEmployerProfile } from '../hooks'
@@ -11,7 +12,7 @@ import { Seo } from '../../../components/shared/Seo'
 export default function EmployerProfilePage() {
   const { data, isLoading } = useEmployerProfile()
   const save = useSaveEmployerProfile()
-  const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<EmployerProfile>({
+  const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<z.input<typeof employerProfileSchema>, unknown, EmployerProfile>({
     resolver: zodResolver(employerProfileSchema),
     defaultValues: { phone: '+245', city: 'Bissau', verified: false },
   })
