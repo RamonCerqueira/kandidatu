@@ -24,7 +24,12 @@ export const trainingService = {
   },
   // SuperAdmin endpoints
   async createFreeCourse(input: CreateFreeCourseInput): Promise<void> {
-    await api.post('/admin/training/free-courses', input)
+    const { quizQuestion, quizOptionA, quizOptionB, quizOptionC, quizCorrectIndex, ...rest } = input
+    const options = [quizOptionA, quizOptionB, quizOptionC].filter((o): o is string => !!o?.trim())
+    const quiz = quizQuestion?.trim() && options.length >= 2
+      ? { question: quizQuestion.trim(), options, correctIndex: Math.min(quizCorrectIndex, options.length - 1) }
+      : null
+    await api.post('/admin/training/free-courses', { ...rest, quiz })
   },
   async deleteFreeCourse(id: string): Promise<void> {
     await api.delete(`/admin/training/free-courses/${id}`)

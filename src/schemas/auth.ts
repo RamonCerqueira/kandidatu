@@ -65,6 +65,17 @@ export type CompanyRegisterInput = z.infer<typeof companyRegisterSchema>
 export const forgotPasswordSchema = z.object({ email: z.string().email('E-mail inválido') })
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
 
+export const resetPasswordSchema = z
+  .object({
+    password: z.string().min(8, 'Mínimo de 8 caracteres'),
+    confirmPassword: z.string(),
+  })
+  .refine((v) => v.password === v.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'As palavras-passe não coincidem',
+  })
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
+
 export const advertisingRequestSchema = z.object({
   organizationName: z.string().min(2, 'Indique o nome da escola ou empresa'),
   contactName: z.string().min(2, 'Indique o seu nome'),

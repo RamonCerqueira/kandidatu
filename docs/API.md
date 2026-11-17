@@ -9,6 +9,7 @@
 | POST | /advertising-requests | `{organizationName,contactName,phone,email,packageType,paymentMethod,notes?}` (Orange Money / MTN MoMo / Transferência) |
 | POST | /auth/register/company | `{organizationType,legalName,tradeName?,taxId,sector,sizeRange,region,citySector,addressReference,website?,contactName,contactRole,phone,whatsapp?,email,password}`; empresa fica pendente de verificação |
 | POST | /auth/forgot-password | `{email}`; resposta neutra (não revelar se o e-mail existe) |
+| POST | /auth/reset-password | `{token,password}` redefine a palavra-passe |
 | GET | /auth/me | utilizador atual |
 | GET | /jobs | query: q, region, category, contractType, workMode, page, sort → `{items,page,pageSize,total}` |
 | GET | /jobs/{id} | detalhe da vaga |

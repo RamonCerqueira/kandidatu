@@ -61,3 +61,17 @@
     transition-duration: .01ms !important;
   }
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  body {
+    background: #FFFFFF !important;
+    padding-bottom: 0 !important;
+  }
+  header, footer, nav {
+    display: none !important;
+  }
+}

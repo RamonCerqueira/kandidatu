@@ -24,6 +24,8 @@ const SignupChoicePage = lazy(() => import('./features/auth/pages/SignupChoicePa
 const RegisterCandidatePage = lazy(() => import('./features/auth/pages/RegisterCandidatePage'))
 const RegisterCompanyPage = lazy(() => import('./features/auth/pages/RegisterCompanyPage'))
 const ForgotPasswordPage = lazy(() => import('./features/auth/pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('./features/auth/pages/ResetPasswordPage'))
+const NotFoundPage = lazy(() => import('./features/public/NotFoundPage'))
 const CandidateDashboardPage = lazy(() => import('./features/candidate/pages/CandidateDashboardPage'))
 const ProfilePage = lazy(() => import('./features/candidate/pages/ProfilePage'))
 const CurriculumPage = lazy(() => import('./features/candidate/pages/CurriculumPage'))
@@ -65,7 +67,9 @@ const router = createBrowserRouter([
       { path: '/cadastro/candidato', element: <RegisterCandidatePage /> },
       { path: '/cadastro/empresa', element: <RegisterCompanyPage /> },
       { path: '/recuperar-senha', element: <ForgotPasswordPage /> },
+      { path: '/redefinir-senha', element: <ResetPasswordPage /> },
       { path: '/:slug', element: <InstitutionalPage /> },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
   {

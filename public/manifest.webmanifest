@@ -1,0 +1,19 @@
+{
+  "name": "KANDIDATU — Empregos Guiné-Bissau",
+  "short_name": "KANDIDATU",
+  "description": "Plataforma digital de recrutamento e valorização profissional da Guiné-Bissau.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F6F8FA",
+  "theme_color": "#142C4E",
+  "lang": "pt-GW",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+

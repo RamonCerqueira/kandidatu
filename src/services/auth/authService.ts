@@ -15,15 +15,22 @@ export const authService = {
     return s.user
   },
   async registerCandidate(input: CandidateRegisterInput): Promise<void> {
-    const { confirmPassword: _c, acceptTerms: _a, ...body } = input
+    const body = { ...input } as Record<string, unknown>
+    delete body.confirmPassword
+    delete body.acceptTerms
     await api.post('/auth/register/candidate', body)
   },
   async registerCompany(input: CompanyRegisterInput): Promise<void> {
-    const { confirmPassword: _c, acceptTerms: _a, ...body } = input
+    const body = { ...input } as Record<string, unknown>
+    delete body.confirmPassword
+    delete body.acceptTerms
     await api.post('/auth/register/company', body)
   },
   async forgotPassword(input: ForgotPasswordInput): Promise<void> {
     await api.post('/auth/forgot-password', input)
+  },
+  async resetPassword(token: string, password: string): Promise<void> {
+    await api.post('/auth/reset-password', { token, password })
   },
   async me(): Promise<User> {
     const { data } = await api.get('/auth/me')

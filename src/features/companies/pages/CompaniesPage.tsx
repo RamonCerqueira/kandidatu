@@ -2,34 +2,51 @@ import { useState } from 'react'
 import { useCompanies } from '../hooks'
 import { CompanyCard } from '../../../components/companies/CompanyCard'
 import { EmptyState, Skeleton } from '../../../components/ui/feedback'
-import { REGION_LABELS } from '../../../constants'
+import { CATEGORIES, REGION_LABELS } from '../../../constants'
 import { useDebounced } from '../../../hooks/useDebounced'
 import { Seo } from '../../../components/shared/Seo'
 
 export default function CompaniesPage() {
   const [q, setQ] = useState('')
   const [region, setRegion] = useState('')
+  const [sector, setSector] = useState('')
   const [verified, setVerified] = useState(false)
   const [page, setPage] = useState(1)
   const dq = useDebounced(q)
-  const { data, isLoading, isError } = useCompanies({ q: dq || undefined, region: region || undefined, verified: verified || undefined, page })
+  const { data, isLoading, isError } = useCompanies({
+    q: dq || undefined,
+    region: region || undefined,
+    sector: sector || undefined,
+    verified: verified || undefined,
+    page,
+  })
   const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <Seo title="Empresas" description="Empresas e instituições que recrutam na Guiné-Bissau." />
-      <h1 className="text-2xl font-bold">Empresas</h1>
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
-        <label className="flex-1 text-sm font-medium">Pesquisar
+      <h1 className="text-2xl font-bold">Empresas e Organizações</h1>
+      <p className="mt-1 text-sm text-ink-muted">Diretório de empresas privadas, ONGs, instituições públicas e organismos internacionais.</p>
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_180px_180px_auto] lg:items-end">
+        <label className="text-sm font-medium">Pesquisar
           <input className="input mt-1" value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} placeholder="Nome, setor ou segmento" />
+        </label>
+        <label className="text-sm font-medium">Setor
+          <select className="input mt-1" value={sector} onChange={(e) => { setSector(e.target.value); setPage(1) }}>
+            <option value="">Todos os setores</option>
+            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
         </label>
         <label className="text-sm font-medium">Localização
           <select className="input mt-1" value={region} onChange={(e) => { setRegion(e.target.value); setPage(1) }}>
-            <option value="">Todas</option>
+            <option value="">Todas as regiões</option>
             {Object.entries(REGION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         </label>
-        <label className="flex items-center gap-2 pb-3 text-sm"><input type="checkbox" checked={verified} onChange={(e) => { setVerified(e.target.checked); setPage(1) }} />Só verificadas</label>
+        <label className="flex items-center gap-2 pb-2.5 text-sm font-medium">
+          <input type="checkbox" checked={verified} onChange={(e) => { setVerified(e.target.checked); setPage(1) }} />
+          Só verificadas
+        </label>
       </div>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading && [0, 1, 2].map((i) => <Skeleton key={i} className="h-28" />)}

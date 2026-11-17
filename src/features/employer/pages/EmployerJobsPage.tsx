@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, type FieldPath } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Copy, Edit, Pause, Play, Plus, Trash2, XCircle } from 'lucide-react'
 import { jobFormSchema, type JobFormInput } from '../../../schemas/employer'
 import { contractTypes, regions, workModes } from '../../../schemas/job'
 import { CATEGORIES, CONTRACT_LABELS, EDUCATION_LEVELS, EXPERIENCE_LEVELS, MODE_LABELS, REGION_LABELS } from '../../../constants'
+import { useJob } from '../../jobs/hooks'
 import { useEmployerJobs, useJobActions, useSaveJob } from '../hooks'
+import { useToast } from '../../../components/ui/ToastContext'
 import { FormField } from '../../../components/forms/FormField'
 import { PageHeader, QueryState } from '../../../components/shared/Dashboard'
 import { Seo } from '../../../components/shared/Seo'
@@ -69,15 +71,22 @@ export function EmployerJobsPage() {
   )
 }
 
-const STEPS = ['1. Informações gerais', '2. Requisitos e descrição', '3. Condições e publicação']
+const STEPS: { label: string; fields: FieldPath<JobFormInput>[] }[] = [
+  { label: '1. Informações gerais', fields: ['title', 'category', 'vacancies', 'region', 'city'] },
+  { label: '2. Requisitos e descrição', fields: ['description', 'responsibilities', 'requirements', 'education', 'experience'] },
+  { label: '3. Condições e publicação', fields: ['salaryMin', 'salaryMax', 'contractType', 'workMode', 'workload', 'deadline', 'benefits'] },
+]
 
 export function EmployerJobFormPage() {
   const { id } = useParams()
   const nav = useNavigate()
+  const { notify } = useToast()
   const [step, setStep] = useState(0)
+  const existing = useJob(id ?? '')
   const save = useSaveJob(id)
-  const { register, handleSubmit, formState: { errors } } = useForm<JobFormInput>({
+  const { register, handleSubmit, reset, trigger, formState: { errors } } = useForm<JobFormInput>({
     resolver: zodResolver(jobFormSchema) as never,
+    mode: 'onTouched',
     defaultValues: {
       currency: 'XOF',
       vacancies: 1,
@@ -91,9 +100,44 @@ export function EmployerJobFormPage() {
     },
   })
 
+  useEffect(() => {
+    const j = existing.data
+    if (!j) return
+    reset({
+      title: j.title,
+      category: j.category,
+      description: j.description,
+      responsibilities: j.responsibilities.join('\n'),
+      requirements: j.requirements.join('\n'),
+      benefits: j.benefits.join('\n'),
+      education: j.education ?? EDUCATION_LEVELS[3],
+      experience: j.experience ?? EXPERIENCE_LEVELS[1],
+      vacancies: 1,
+      region: j.region,
+      city: j.city ?? '',
+      salaryMin: j.salaryMin ?? undefined,
+      salaryMax: j.salaryMax ?? undefined,
+      currency: 'XOF',
+      contractType: j.contractType,
+      workload: '40h semanais',
+      workMode: j.workMode,
+      deadline: j.deadline ? j.deadline.slice(0, 10) : '',
+    })
+  }, [existing.data, reset])
+
+  const nextStep = async () => {
+    const ok = await trigger(STEPS[step].fields)
+    if (ok) setStep((s) => Math.min(s + 1, STEPS.length - 1))
+  }
+
   const onSubmit = async (v: JobFormInput) => {
-    await save.mutateAsync(v)
-    nav('/empresa/vagas')
+    try {
+      await save.mutateAsync(v)
+      notify(id ? 'Vaga atualizada com sucesso!' : 'Vaga publicada com sucesso!', 'success')
+      nav('/empresa/vagas')
+    } catch {
+      notify('Não foi possível guardar a vaga.', 'error')
+    }
   }
 
   return (
@@ -102,9 +146,9 @@ export function EmployerJobFormPage() {
       <PageHeader title={id ? 'Editar vaga' : 'Publicar nova vaga'} subtitle="Preencha os dados da oportunidade em três etapas." />
 
       <ol className="mb-6 grid grid-cols-3 gap-2">
-        {STEPS.map((label, i) => (
-          <li key={label} className={`rounded-lg border p-2.5 text-xs font-semibold ${i === step ? 'border-brand bg-brand text-white' : i < step ? 'border-accent bg-accent-50 text-accent-600' : 'border-line bg-white text-ink-muted'}`}>
-            {label}
+        {STEPS.map((s, i) => (
+          <li key={s.label} className={`rounded-lg border p-2.5 text-xs font-semibold ${i === step ? 'border-brand bg-brand text-white' : i < step ? 'border-accent bg-accent-50 text-accent-600' : 'border-line bg-white text-ink-muted'}`}>
+            {s.label}
           </li>
         ))}
       </ol>
@@ -211,9 +255,11 @@ export function EmployerJobFormPage() {
         <div className="flex justify-between pt-2">
           <button type="button" className="btn-outline" disabled={step === 0} onClick={() => setStep(step - 1)}>Anterior</button>
           {step < 2 ? (
-            <button type="button" className="btn-primary" onClick={() => setStep(step + 1)}>Seguinte</button>
+            <button type="button" className="btn-primary" onClick={nextStep}>Seguinte</button>
           ) : (
-            <button type="submit" className="btn-accent" disabled={save.isPending}>Publicar vaga</button>
+            <button type="submit" className="btn-accent" disabled={save.isPending}>
+              {id ? 'Guardar alterações' : 'Publicar vaga'}
+            </button>
           )}
         </div>
       </form>
